@@ -2,13 +2,11 @@ import React from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { Text, Button, IconButton } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router'; // 1. Importamos el hook de navegación
+import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
-  // 2. Obtenemos el objeto router
   const router = useRouter();
 
-  // Definición de colores con TypeScript (opcional pero recomendable)
   const colors = {
     bgLight: '#f8fafc',    
     primary: '#2563eb',    
@@ -22,7 +20,6 @@ export default function HomeScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
       <ScrollView>
         
-        {/* --- HERO SECTION --- */}
         <View style={[styles.heroSection, { backgroundColor: colors.bgLight, borderBottomColor: colors.border }]}>
           
           <IconButton 
@@ -40,34 +37,8 @@ export default function HomeScreen() {
           <Text style={[styles.heroSubtitle, { color: colors.textGray }]}>
             Aprende programación, bases de datos y desarrollo móvil con los mejores expertos.
           </Text>
-
-          <Button 
-            mode="contained" 
-            // 3. CAMBIO IMPORTANTE: Usamos router.push con la ruta del archivo
-            // Asumiendo que tienes un archivo app/listado.tsx
-            onPress={() => router.push('/listado')}
-            buttonColor={colors.primary}
-            contentStyle={{ paddingVertical: 8, paddingHorizontal: 16 }}
-            style={{ borderRadius: 8, marginTop: 20 }}
-            labelStyle={{ fontSize: 16, fontWeight: 'bold' }}
-          >
-            Ver catálogo de cursos
-          </Button>
-          
-          <Button 
-            mode="contained" 
-            // Asumiendo que tienes un archivo app/alta.tsx
-            onPress={() => router.push('/alta')}
-            buttonColor={colors.primary}
-            contentStyle={{ paddingVertical: 8, paddingHorizontal: 16 }}
-            style={{ borderRadius: 8, marginTop: 20 }}
-            labelStyle={{ fontSize: 16, fontWeight: 'bold' }}
-          >
-            Alta de Cursos
-          </Button>
         </View>
 
-        {/* --- FEATURES SECTION --- */}
         <View style={styles.featuresContainer}>
           
           <FeatureItem 

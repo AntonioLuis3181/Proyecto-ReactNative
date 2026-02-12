@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, FlatList, StyleSheet, Alert } from 'react-native';
 import { Text, Searchbar, ActivityIndicator } from 'react-native-paper';
 import { useIsFocused } from '@react-navigation/native';
-import api from '../src/service/api'; // Asegúrate de que api.js exista o sea api.ts
+import api from '../src/service/api';
 
 import { CursoCard, Curso } from '../src/components/CursoCard'; 
 
