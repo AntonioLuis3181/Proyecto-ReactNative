@@ -1,0 +1,39 @@
+### GET /api/cursos recupera todos los directores
+GET http://localhost:3000/api/cursos
+
+### GET /api/cursos recupera cursos paginados
+GET http://localhost:3000/api//cursos?page=1&limit=5
+
+### GET /api/cursos/:id recupera un plataforma
+GET http://localhost:3000/api/cursos/1
+
+### GET /api/cursos/:id recupera un plataforma - NOT FOUND(404)
+GET http://localhost:3000/api/cursos/50
+
+### POST /api/cursos crea un nuevo curso
+POST http://localhost:3000/api/cursos
+Content-Type: application/json
+
+{
+  "titulo": "Curso de React Avanzado",
+  "descripcion": "Aprende hooks y context",
+  "precio": 19.99,
+  "horas": 40,
+  "id_plataforma": 1,
+  "imagen_url": "https://via.placeholder.com/150",
+  "fecha_publicacion": "2024-02-01"
+}
+
+### PUT /api/cursos/:id modifica un curso existente
+PUT http://localhost:3000/api/cursos/1
+Content-Type: application/json
+
+{
+  "titulo": "Curso de React (Editado)",
+  "precio": 9.99,
+  "horas": 45
+}
+
+### DELETE /api/cursos/:id borra un curso
+DELETE http://localhost:3000/api/cursos/10
+

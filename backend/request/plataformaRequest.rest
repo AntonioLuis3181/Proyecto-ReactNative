@@ -1,0 +1,39 @@
+
+### GET /api/plataformas recupera todas las plataformas
+GET http://localhost:3000/api/plataformas
+
+### GET /api/plataformas recupera plataformas filtradas (Parametrizado)
+GET http://localhost:3000/api/plataformas?busqueda=Udemy
+
+### GET /api/plataformas recupera plataformas paginadas
+GET http://localhost:3000/api/plataformas?page=1&limit=2
+
+### GET /api/plataformas/:id recupera una plataforma por ID
+GET http://localhost:3000/api/plataformas/1
+
+### GET /api/plataformas/:id recupera una plataforma - NOT FOUND(404)
+GET http://localhost:3000/api/plataformas/9999
+
+### POST /api/plataformas crea una nueva plataforma
+POST http://localhost:3000/api/plataformas
+Content-Type: application/json
+
+{
+  "nombre": "Plataforma Nueva Test",
+  "url_web": "https://www.test.com",
+  "es_gratuita": true,
+  "fecha_alta": "2024-01-27"
+}
+
+### PUT /api/plataformas/:id modifica una plataforma existente
+PUT http://localhost:3000/api/plataformas/1
+Content-Type: application/json
+
+{
+  "nombre": "Udemy Editado",
+  "url_web": "https://www.udemy.com/es/",
+  "es_gratuita": false
+}
+
+### DELETE /api/plataformas/:id borra una plataforma
+DELETE http://localhost:3000/api/plataformas/5
