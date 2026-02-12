@@ -1,30 +1,62 @@
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet, KeyboardAvoidingView, Platform, Alert as NativeAlert } from 'react-native';
 import { TextInput, Button, Text, Menu, TouchableRipple, Portal, Dialog, Paragraph, HelperText } from 'react-native-paper';
-import api from '../src/api';
+import api from '../src/service/api';
 
-export default function AltaScreen({ navigation }) {
-  // --- ESTADOS ---
-  const [curso, setCurso] = useState({
+// 1. DEFINICIÓN DE TIPOS (INTERFACES)
+
+// Tipo para una Plataforma (lo que viene de la BD)
+interface Plataforma {
+  id_plataforma: number;
+  nombre: string;
+}
+
+// Tipo para el estado del formulario (Inputs)
+// Nota: Precio y horas los manejamos como string mientras el usuario escribe
+interface CursoFormState {
+  titulo: string;
+  precio: string;
+  horas: string;
+  fecha_publicacion: string;
+  imagen_url: string;
+  id_plataforma: number | ""; // Puede ser un número o cadena vacía si no se ha elegido
+}
+
+// Tipo para los datos del diálogo
+interface DialogData {
+  title: string;
+  msg: string;
+  isError: boolean;
+}
+
+// Props del componente (Navigation)
+// Si tuvieras los tipos de navegación definidos, los pondrías aquí. Usamos 'any' por simplicidad.
+interface AltaScreenProps {
+  navigation: any;
+}
+
+export default function AltaScreen({ navigation }: AltaScreenProps) {
+  
+  // --- ESTADOS CON TIPADO ---
+  
+  const [curso, setCurso] = useState<CursoFormState>({
     titulo: "",
     precio: "",
     horas: "",
-    fecha_publicacion: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+    fecha_publicacion: new Date().toISOString().split('T')[0],
     imagen_url: "",
     id_plataforma: ""
   });
 
-  const [listaPlataformas, setListaPlataformas] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [listaPlataformas, setListaPlataformas] = useState<Plataforma[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
   
-  // Estado para el Menú desplegable (Select)
-  const [menuVisible, setMenuVisible] = useState(false);
+  const [menuVisible, setMenuVisible] = useState<boolean>(false);
 
-  // Estado para el Diálogo de éxito/error
-  const [dialogVisible, setDialogVisible] = useState(false);
-  const [dialogData, setDialogData] = useState({ title: '', msg: '', isError: false });
+  const [dialogVisible, setDialogVisible] = useState<boolean>(false);
+  const [dialogData, setDialogData] = useState<DialogData>({ title: '', msg: '', isError: false });
 
-  // Colores (Mismo estilo que el resto de la app)
+  // Colores
   const colors = {
     primary: '#2563eb',
     bg: '#f8fafc',
@@ -35,8 +67,8 @@ export default function AltaScreen({ navigation }) {
     async function fetchPlataformas() {
       try {
         const respuesta = await api.get("/plataformas");
-        // Ajuste por si tu API devuelve { datos: [...] } o el array directo
-        const datos = respuesta.data.datos || respuesta.data;
+        // TypeScript necesita ayuda para saber qué estructura tiene la respuesta
+        const datos: Plataforma[] = respuesta.data.datos || respuesta.data;
         setListaPlataformas(datos);
       } catch (error) {
         console.error("Error cargando plataformas", error);
@@ -48,9 +80,15 @@ export default function AltaScreen({ navigation }) {
 
   // --- MANEJADORES ---
 
-  const handleChange = (name, value) => {
-    // Validación de números negativos (igual que en tu web)
-    if ((name === "precio" || name === "horas") && value < 0) return;
+  // 'keyof CursoFormState' asegura que solo pasemos nombres de campos válidos
+  const handleChange = (name: keyof CursoFormState, value: string | number) => {
+    
+    // Validación de números negativos
+    if ((name === "precio" || name === "horas")) {
+        // Como value puede ser string o number, forzamos la comparación
+        if(Number(value) < 0) return;
+    }
+    
     setCurso({ ...curso, [name]: value });
   };
 
@@ -72,13 +110,15 @@ export default function AltaScreen({ navigation }) {
     // Enviar a API
     setLoading(true);
     try {
-      await api.post("/cursos", {
+      // Aquí construimos el objeto final con los tipos correctos para la BD
+      const payload = {
         ...curso,
-        // Aseguramos que se envíen como números
         precio: Number(curso.precio),
         horas: Number(curso.horas),
         id_plataforma: Number(curso.id_plataforma)
-      });
+      };
+
+      await api.post("/cursos", payload);
 
       setDialogData({ title: "¡Éxito!", msg: "Curso creado correctamente", isError: false });
       setDialogVisible(true);
@@ -93,17 +133,16 @@ export default function AltaScreen({ navigation }) {
 
   const cerrarDialogo = () => {
     setDialogVisible(false);
-    // Si fue éxito, volvemos al listado
     if (!dialogData.isError) {
       navigation.navigate('Listado'); 
     }
   };
 
-  // Helper para mostrar el nombre de la plataforma seleccionada en el input
+  // Helper para mostrar el nombre de la plataforma
+  // El ?. evita que explote si find devuelve undefined
   const nombrePlataformaSeleccionada = listaPlataformas.find(p => p.id_plataforma === curso.id_plataforma)?.nombre || "";
 
   return (
-    // KeyboardAvoidingView hace que el teclado no tape los inputs
     <KeyboardAvoidingView 
       behavior={Platform.OS === "ios" ? "padding" : "height"} 
       style={{ flex: 1, backgroundColor: colors.bg }}
@@ -150,7 +189,7 @@ export default function AltaScreen({ navigation }) {
             </View>
           </View>
 
-          {/* FECHA (Simplificado como texto para evitar librerías externas complejas) */}
+          {/* FECHA */}
           <TextInput
             label="Fecha (YYYY-MM-DD)"
             value={curso.fecha_publicacion}
@@ -170,21 +209,24 @@ export default function AltaScreen({ navigation }) {
             activeOutlineColor={colors.primary}
           />
 
-          {/* SELECTOR DE PLATAFORMA (Simulado con Menú) */}
+          {/* SELECTOR DE PLATAFORMA */}
           <View style={styles.input}>
             <Menu
               visible={menuVisible}
               onDismiss={() => setMenuVisible(false)}
               anchor={
                 <TouchableRipple onPress={() => setMenuVisible(true)}>
-                  <TextInput
-                    label="Selecciona Plataforma"
-                    value={nombrePlataformaSeleccionada}
-                    mode="outlined"
-                    editable={false} // Para que no escriban, solo toquen
-                    right={<TextInput.Icon icon="chevron-down" />}
-                    style={{ backgroundColor: '#fff' }}
-                  />
+                    {/* View necesaria porque TextInput no acepta ref directamente del Menu a veces */}
+                    <View pointerEvents="none">
+                        <TextInput
+                            label="Selecciona Plataforma"
+                            value={nombrePlataformaSeleccionada}
+                            mode="outlined"
+                            editable={false}
+                            right={<TextInput.Icon icon="chevron-down" />}
+                            style={{ backgroundColor: '#fff' }}
+                        />
+                    </View>
                 </TouchableRipple>
               }
             >
@@ -203,7 +245,6 @@ export default function AltaScreen({ navigation }) {
                 ))
               )}
             </Menu>
-            {/* Mensaje de ayuda si está vacío */}
             {!curso.id_plataforma && <HelperText type="info">Debes elegir una plataforma de la lista</HelperText>}
           </View>
 
@@ -222,7 +263,7 @@ export default function AltaScreen({ navigation }) {
         </View>
       </ScrollView>
 
-      {/* DIÁLOGO DE CONFIRMACIÓN (Como el de tu Web) */}
+      {/* DIÁLOGO */}
       <Portal>
         <Dialog visible={dialogVisible} onDismiss={cerrarDialogo}>
           <Dialog.Title>{dialogData.title}</Dialog.Title>
@@ -254,8 +295,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     padding: 20,
     borderRadius: 10,
-    elevation: 4, // Sombra en Android
-    shadowColor: '#000', // Sombra en iOS
+    elevation: 4, 
+    shadowColor: '#000', 
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,

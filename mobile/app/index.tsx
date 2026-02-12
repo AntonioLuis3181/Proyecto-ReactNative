@@ -2,23 +2,27 @@ import React from 'react';
 import { View, ScrollView, StyleSheet } from 'react-native';
 import { Text, Button, IconButton } from 'react-native-paper';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router'; // 1. Importamos el hook de navegación
 
-export default function HomeScreen({ navigation }) {
-  
+export default function HomeScreen() {
+  // 2. Obtenemos el objeto router
+  const router = useRouter();
+
+  // Definición de colores con TypeScript (opcional pero recomendable)
   const colors = {
     bgLight: '#f8fafc',    
     primary: '#2563eb',    
-    textDark: '#1f2937',   // Gris muy oscuro (Títulos)
-    textGray: '#4b5563',   // Gris medio (Subtítulos)
-    textLight: '#64748b',  // Gris claro (Descripciones)
-    border: '#e5e7eb',     // Borde sutil
+    textDark: '#1f2937',   
+    textGray: '#4b5563',   
+    textLight: '#64748b',  
+    border: '#e5e7eb',     
   };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
       <ScrollView>
         
-        {/* --- HERO SECTION (La parte azul/gris de arriba) --- */}
+        {/* --- HERO SECTION --- */}
         <View style={[styles.heroSection, { backgroundColor: colors.bgLight, borderBottomColor: colors.border }]}>
           
           <IconButton 
@@ -39,7 +43,9 @@ export default function HomeScreen({ navigation }) {
 
           <Button 
             mode="contained" 
-            onPress={() => navigation.navigate('Listado')}
+            // 3. CAMBIO IMPORTANTE: Usamos router.push con la ruta del archivo
+            // Asumiendo que tienes un archivo app/listado.tsx
+            onPress={() => router.push('/listado')}
             buttonColor={colors.primary}
             contentStyle={{ paddingVertical: 8, paddingHorizontal: 16 }}
             style={{ borderRadius: 8, marginTop: 20 }}
@@ -50,7 +56,8 @@ export default function HomeScreen({ navigation }) {
           
           <Button 
             mode="contained" 
-            onPress={() => navigation.navigate('Alta')}
+            // Asumiendo que tienes un archivo app/alta.tsx
+            onPress={() => router.push('/alta')}
             buttonColor={colors.primary}
             contentStyle={{ paddingVertical: 8, paddingHorizontal: 16 }}
             style={{ borderRadius: 8, marginTop: 20 }}
@@ -60,39 +67,32 @@ export default function HomeScreen({ navigation }) {
           </Button>
         </View>
 
-        {/* --- FEATURES SECTION (Los 3 iconos de abajo) --- */}
+        {/* --- FEATURES SECTION --- */}
         <View style={styles.featuresContainer}>
           
-          {/* Item 1: Contenido Actualizado */}
-          <View style={styles.featureItem}>
-            <IconButton icon="book-open-variant" iconColor={colors.primary} size={40} />
-            <Text style={[styles.featureTitle, { color: colors.textDark }]}>Contenido Actualizado</Text>
-            <Text style={[styles.featureText, { color: colors.textLight }]}>
-              Cursos revisados cada semana para estar al día con las últimas tecnologías y frameworks.
-            </Text>
-          </View>
+          <FeatureItem 
+            icon="book-open-variant" 
+            title="Contenido Actualizado" 
+            desc="Cursos revisados cada semana para estar al día con las últimas tecnologías."
+            colors={colors}
+          />
 
-          {/* Item 2: Certificados Oficiales */}
-          <View style={styles.featureItem}>
-            <IconButton icon="school" iconColor={colors.primary} size={40} />
-            <Text style={[styles.featureTitle, { color: colors.textDark }]}>Certificados Oficiales</Text>
-            <Text style={[styles.featureText, { color: colors.textLight }]}>
-              Al terminar cada módulo, obtendrás un certificado digital para potenciar tu perfil profesional.
-            </Text>
-          </View>
+          <FeatureItem 
+            icon="school" 
+            title="Certificados Oficiales" 
+            desc="Al terminar cada módulo, obtendrás un certificado digital profesional."
+            colors={colors}
+          />
 
-          {/* Item 3: Prácticas Reales */}
-          <View style={styles.featureItem}>
-            <IconButton icon="console" iconColor={colors.primary} size={40} />
-            <Text style={[styles.featureTitle, { color: colors.textDark }]}>Prácticas Reales</Text>
-            <Text style={[styles.featureText, { color: colors.textLight }]}>
-              Proyectos prácticos basados en desafíos reales del mundo laboral y la industria tech.
-            </Text>
-          </View>
+          <FeatureItem 
+            icon="console" 
+            title="Prácticas Reales" 
+            desc="Proyectos prácticos basados en desafíos reales de la industria tech."
+            colors={colors}
+          />
 
         </View>
         
-        {/* Espacio extra abajo para que no se corte */}
         <View style={{ height: 40 }} />
 
       </ScrollView>
@@ -100,15 +100,34 @@ export default function HomeScreen({ navigation }) {
   );
 }
 
+interface FeatureProps {
+    icon: string;
+    title: string;
+    desc: string;
+    colors: any;
+}
+
+function FeatureItem({ icon, title, desc, colors }: FeatureProps) {
+    return (
+        <View style={styles.featureItem}>
+            <IconButton icon={icon} iconColor={colors.primary} size={40} />
+            <Text style={[styles.featureTitle, { color: colors.textDark }]}>{title}</Text>
+            <Text style={[styles.featureText, { color: colors.textLight }]}>
+              {desc}
+            </Text>
+        </View>
+    );
+}
+
 const styles = StyleSheet.create({
   heroSection: {
     alignItems: 'center',
-    paddingVertical: 60, // py: 10 aprox
+    paddingVertical: 60,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
   },
   heroTitle: {
-    fontSize: 32, // Equivalente a 2.5rem aprox en móvil
+    fontSize: 32,
     fontWeight: 'bold',
     textAlign: 'center',
     marginTop: 16,
@@ -128,7 +147,7 @@ const styles = StyleSheet.create({
   },
   featureItem: {
     alignItems: 'center',
-    marginBottom: 40, // Espacio entre items (simulando el Grid spacing)
+    marginBottom: 40,
     paddingHorizontal: 10,
   },
   featureTitle: {
