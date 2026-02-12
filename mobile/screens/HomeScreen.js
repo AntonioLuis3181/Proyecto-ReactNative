@@ -5,10 +5,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function HomeScreen({ navigation }) {
   
-  // Colores extraídos de tu código original
   const colors = {
-    bgLight: '#f8fafc',    // Fondo del hero
-    primary: '#2563eb',    // Azul eléctrico
+    bgLight: '#f8fafc',    
+    primary: '#2563eb',    
     textDark: '#1f2937',   // Gris muy oscuro (Títulos)
     textGray: '#4b5563',   // Gris medio (Subtítulos)
     textLight: '#64748b',  // Gris claro (Descripciones)
