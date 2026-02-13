@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/ListadoPlataformas.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/ListadoPlataformas.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Paper from "@mui/material/Paper";
+import TextField from "@mui/material/TextField";
+import Grid from "@mui/material/Grid";
+import SearchIcon from '@mui/icons-material/Search';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import IconButton from '@mui/material/IconButton';
+
+import api from "../api";
+/**
+ * Componente principal de listado.
+ * @component
+ */
+function ListadoPlataformas() {
+  const [datos, setDatos] = useState([]);
+  
+  const [busqueda, setBusqueda] = useState("");
+  const [fechaInicio, setFechaInicio] = useState("");
+  const [fechaFin, setFechaFin] = useState("");
+
+  const getPlataformasFromApi = async () => {
+    try {
+      let queryParams = new URLSearchParams();
+      if (busqueda) queryParams.append("busqueda", busqueda);
+      if (fechaInicio) queryParams.append("fechaInicio", fechaInicio);
+      if (fechaFin) queryParams.append("fechaFin", fechaFin);
+
+      const url = `/plataformas?${queryParams.toString()}`;
+      
+      const respuesta = await api.get(url);
+      return respuesta.datos || [];
+    } catch (error) {
+      console.error("Error cargando plataformas:", error);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    const cargaInicial = async () => {
+        const resultados = await getPlataformasFromApi();
+        setDatos(resultados);
+    };
+    cargaInicial();
+  }, []);
+
+  const handleSearch = async () => {
+    const resultados = await getPlataformasFromApi();
+    setDatos(resultados);
+  };
+
+  async function handleDelete(id) {
+    if (window.confirm("¿Seguro que quieres borrar esta plataforma?")) {
+      try {
+        await api.delete("/plataformas/" + id);
+        setDatos((prev) => prev.filter((p) => p.id_plataforma !== id));
+      } catch (error) {
+        console.error("Error al borrar", error);
+        alert("No se puede borrar: Probablemente tenga cursos asociados.");
+      }
+    }
+  }
+
+  return (
+    &lt;>
+      &lt;Typography variant="h4" align="center" sx={{ mt: 3, mb: 3 }}>
+        Listado de Plataformas
+      &lt;/Typography>
+
+      &lt;Grid container spacing={2} sx={{ justifyContent: "center", mb: 3, alignItems: "center" }}>
+        
+        &lt;Grid item>
+            &lt;TextField 
+                label="Nombre..." 
+                variant="outlined" 
+                size="small"
+                value={busqueda}
+                onChange={(e) => setBusqueda(e.target.value)}
+            />
+        &lt;/Grid>
+
+        &lt;Grid item>
+             &lt;TextField
+                label="Desde"
+                type="date"
+                size="small"
+                InputLabelProps={{ shrink: true }}
+                value={fechaInicio}
+                onChange={(e) => setFechaInicio(e.target.value)}
+            />
+        &lt;/Grid>
+
+        &lt;Grid item>
+             &lt;TextField
+                label="Hasta"
+                type="date"
+                size="small"
+                InputLabelProps={{ shrink: true }}
+                value={fechaFin}
+                onChange={(e) => setFechaFin(e.target.value)}
+            />
+        &lt;/Grid>
+
+        &lt;Grid item>
+            &lt;Button 
+                variant="contained" 
+                startIcon={&lt;SearchIcon />} 
+                onClick={handleSearch}
+            >
+                Buscar
+            &lt;/Button>
+        &lt;/Grid>
+      &lt;/Grid>
+
+      &lt;TableContainer component={Paper} sx={{ mx: 2, width: 'auto', mb: 5 }}>
+        &lt;Table sx={{ minWidth: 650 }}>
+          &lt;TableHead>
+            &lt;TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+              &lt;TableCell>Nombre&lt;/TableCell>
+              &lt;TableCell>Web&lt;/TableCell>
+              &lt;TableCell>¿Gratis?&lt;/TableCell>
+              &lt;TableCell>Fecha Alta&lt;/TableCell>
+              &lt;TableCell align="center">Acciones&lt;/TableCell>
+            &lt;/TableRow>
+          &lt;/TableHead>
+          &lt;TableBody>
+            {datos.length === 0 ? (
+                &lt;TableRow>&lt;TableCell colSpan={5} align="center">No hay datos&lt;/TableCell>&lt;/TableRow>
+            ) : (
+                datos.map((row) => (
+                &lt;TableRow key={row.id_plataforma}>
+                    &lt;TableCell sx={{ fontWeight: 'bold' }}>{row.nombre}&lt;/TableCell>
+                    
+                    &lt;TableCell>
+                        {row.url_web &amp;&amp; &lt;a href={row.url_web} target="_blank" rel="noopener noreferrer">Visitar&lt;/a>}
+                    &lt;/TableCell>
+
+                    &lt;TableCell>{row.es_gratuita ? "Sí" : "No"}&lt;/TableCell>
+                    
+                    &lt;TableCell>
+                        {row.fecha_alta ? new Date(row.fecha_alta).toLocaleDateString() : '-'}
+                    &lt;/TableCell>
+
+                    &lt;TableCell align="center">
+                    &lt;IconButton component={Link} to={`/plataformas/edit/${row.id_plataforma}`} color="primary">
+                        &lt;EditIcon />
+                    &lt;/IconButton>
+                    &lt;IconButton onClick={() => handleDelete(row.id_plataforma)} color="error">
+                        &lt;DeleteIcon />
+                    &lt;/IconButton>
+                    &lt;/TableCell>
+                &lt;/TableRow>
+                ))
+            )}
+          &lt;/TableBody>
+        &lt;/Table>
+      &lt;/TableContainer>
+    &lt;/>
+  );
+}
+
+export default ListadoPlataformas;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AltaCurso">AltaCurso</a></li><li><a href="global.html#AltaPlataforma">AltaPlataforma</a></li><li><a href="global.html#EditarCurso">EditarCurso</a></li><li><a href="global.html#EditarPlataforma">EditarPlataforma</a></li><li><a href="global.html#Footer">Footer</a></li><li><a href="global.html#Inicio">Inicio</a></li><li><a href="global.html#ListadoCardCursos">ListadoCardCursos</a></li><li><a href="global.html#ListadoCardPlataformas">ListadoCardPlataformas</a></li><li><a href="global.html#ListadoCursos">ListadoCursos</a></li><li><a href="global.html#ListadoCursosDataGrid">ListadoCursosDataGrid</a></li><li><a href="global.html#ListadoPlataformas">ListadoPlataformas</a></li><li><a href="global.html#ListadoPlataformasDataGrid">ListadoPlataformasDataGrid</a></li><li><a href="global.html#Navbar">Navbar</a></li><li><a href="global.html#api">api</a></li><li><a href="global.html#clearUser">clearUser</a></li><li><a href="global.html#isAdmin">isAdmin</a></li><li><a href="global.html#isLoggedIn">isLoggedIn</a></li><li><a href="global.html#isUser">isUser</a></li><li><a href="global.html#setUser">setUser</a></li><li><a href="global.html#useUserStore">useUserStore</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Mon Feb 09 2026 17:42:31 GMT+0100 (hora estándar de Europa central)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

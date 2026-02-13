@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet, KeyboardAvoidingView, Platform, Alert as NativeAlert } from 'react-native';
 import { TextInput, Button, Text, Menu, TouchableRipple, Portal, Dialog, Paragraph, HelperText } from 'react-native-paper';
+import { useRouter } from 'expo-router';
 import api from '../src/service/api';
 
 // 1. DEFINICIÓN DE TIPOS (INTERFACES)
@@ -29,13 +30,10 @@ interface DialogData {
   isError: boolean;
 }
 
-// Props del componente (Navigation)
-// Si tuvieras los tipos de navegación definidos, los pondrías aquí. Usamos 'any' por simplicidad.
-interface AltaScreenProps {
-  navigation: any;
-}
 
-export default function AltaScreen({ navigation }: AltaScreenProps) {
+export default function AltaScreen() {
+
+  const router = useRouter();
   
   // --- ESTADOS CON TIPADO ---
   
@@ -56,6 +54,13 @@ export default function AltaScreen({ navigation }: AltaScreenProps) {
   const [dialogVisible, setDialogVisible] = useState<boolean>(false);
   const [dialogData, setDialogData] = useState<DialogData>({ title: '', msg: '', isError: false });
 
+  const cerrarDialogo = () => {
+    setDialogVisible(false);
+    if(!dialogData.isError) {
+      router.push('/listado');
+    }
+  }
+
   // Colores
   const colors = {
     primary: '#2563eb',
@@ -64,19 +69,26 @@ export default function AltaScreen({ navigation }: AltaScreenProps) {
 
   // 1. Cargar Plataformas al iniciar
   useEffect(() => {
-    async function fetchPlataformas() {
-      try {
-        const respuesta = await api.get("/plataformas");
-        // TypeScript necesita ayuda para saber qué estructura tiene la respuesta
-        const datos: Plataforma[] = respuesta.data.datos || respuesta.data;
-        setListaPlataformas(datos);
-      } catch (error) {
-        console.error("Error cargando plataformas", error);
-        NativeAlert.alert("Error", "No se pudieron cargar las plataformas");
+  async function fetchPlataformas() {
+    try {
+      const respuesta = await api.get("/plataformas");
+      
+      // ✅ CORRECCIÓN: respuesta ya es { ok: true, datos: [...] }
+      // No necesitas .data porque el interceptor ya lo extrajo
+      if (respuesta && respuesta.datos) {
+        setListaPlataformas(respuesta.datos);
+      } else {
+        console.error("Respuesta inesperada:", respuesta);
+        setListaPlataformas([]);
       }
+    } catch (error) {
+      console.error("Error cargando plataformas", error);
+      NativeAlert.alert("Error", "No se pudieron cargar las plataformas");
+      setListaPlataformas([]);
     }
-    fetchPlataformas();
-  }, []);
+  }
+  fetchPlataformas();
+}, []);
 
   // --- MANEJADORES ---
 
@@ -131,12 +143,6 @@ export default function AltaScreen({ navigation }: AltaScreenProps) {
     }
   };
 
-  const cerrarDialogo = () => {
-    setDialogVisible(false);
-    if (!dialogData.isError) {
-      navigation.navigate('Listado'); 
-    }
-  };
 
   // Helper para mostrar el nombre de la plataforma
   // El ?. evita que explote si find devuelve undefined

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/EditarCurso.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/EditarCurso.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom"; 
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Grid from "@mui/material/Grid"; 
+import Paper from "@mui/material/Paper";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import InputLabel from "@mui/material/InputLabel";
+import FormControl from "@mui/material/FormControl";
+import api from "../api";
+/**
+ * Componente principal de listado.
+ * @component
+ */
+function EditarCurso() {
+  const navigate = useNavigate();
+  const { id } = useParams();
+
+  const [curso, setCurso] = useState({
+    titulo: "",
+    precio: "",
+    horas: "",
+    fecha_publicacion: "",
+    imagen_url: "",
+    id_plataforma: ""
+  });
+
+  const [listaPlataformas, setListaPlataformas] = useState([]);
+
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const resPlataformas = await api.get("/plataformas");
+        if(resPlataformas.datos) {
+            setListaPlataformas(resPlataformas.datos);
+        }
+
+        const resCurso = await api.get(`/cursos/${id}`);
+        const data = resCurso.datos;
+
+        let fechaFormateada = "";
+        if (data.fecha_publicacion) {
+            fechaFormateada = new Date(data.fecha_publicacion).toISOString().split('T')[0];
+        }
+
+        setCurso({
+            titulo: data.titulo,
+            precio: data.precio,
+            horas: data.horas,
+            fecha_publicacion: fechaFormateada,
+            imagen_url: data.imagen_url,
+            id_plataforma: data.id_plataforma 
+        });
+
+      } catch (error) {
+        console.error("Error cargando datos:", error);
+        alert("Error al cargar el curso. Mira la consola.");
+      }
+    }
+
+    fetchData();
+  }, [id]);
+
+  function handleChange(e) {
+    let { name, value } = e.target;
+    if (name === "precio" || name === "horas") {
+      if (value &lt; 0) value = 0;
+    }
+    setCurso({ ...curso, [name]: value });
+  }
+
+  async function handleSubmit() {
+    try {
+        await api.put(`/cursos/${id}`, curso); 
+        alert("Curso actualizado correctamente");
+        navigate("/cursos");
+    } catch (error) {
+        console.error("Error actualizando:", error);
+        alert("Error al guardar los cambios");
+    }
+  }
+
+  return (
+    &lt;Grid container spacing={2} sx={{ justifyContent: "center", mt: 3 }}>
+        &lt;Grid item size={{ xs: 12, sm: 9, md: 7 }}>
+          &lt;Paper elevation={6} sx={{ p: 3, maxWidth: 900, mx: "auto" }}>
+            &lt;Typography variant="h4" align="center" sx={{ mb: 3 }}>
+              Editar Curso #{id}
+            &lt;/Typography>
+
+            &lt;Grid container spacing={2}>
+              &lt;Grid item size={{ xs: 12 }}>
+                &lt;TextField
+                  fullWidth label="Título" name="titulo"
+                  value={curso.titulo} onChange={handleChange}
+                />
+              &lt;/Grid>
+
+              &lt;Grid item size={{ xs: 12, sm: 6 }}>
+                &lt;TextField
+                  fullWidth label="Precio (€)" name="precio" type="number"
+                  value={curso.precio} onChange={handleChange}
+                />
+              &lt;/Grid>
+              &lt;Grid item size={{ xs: 12, sm: 6 }}>
+                &lt;TextField
+                  fullWidth label="Horas" name="horas" type="number"
+                  value={curso.horas} onChange={handleChange}
+                />
+              &lt;/Grid>
+
+              &lt;Grid item size={{ xs: 12, sm: 6 }}>
+                &lt;TextField
+                  fullWidth label="Fecha" name="fecha_publicacion" type="date"
+                  value={curso.fecha_publicacion} onChange={handleChange}
+                />
+              &lt;/Grid>
+              &lt;Grid item size={{ xs: 12, sm: 6 }}>
+                &lt;TextField
+                  fullWidth label="URL Imagen" name="imagen_url"
+                  value={curso.imagen_url} onChange={handleChange}
+                />
+              &lt;/Grid>
+
+              &lt;Grid item size={{ xs: 12 }}>
+                &lt;FormControl fullWidth>
+                  &lt;InputLabel id="plat-label" shrink>Plataforma&lt;/InputLabel>
+                  &lt;Select
+                    labelId="plat-label"
+                    name="id_plataforma"
+                    value={curso.id_plataforma}
+                    label="Plataforma"
+                    displayEmpty
+                    onChange={handleChange}
+                  >
+                    {listaPlataformas.map((p) => (
+                        &lt;MenuItem key={p.id_plataforma} value={p.id_plataforma}>
+                            {p.nombre}
+                        &lt;/MenuItem>
+                    ))}
+                  &lt;/Select>
+                &lt;/FormControl>
+              &lt;/Grid>
+
+              &lt;Grid item size={{ xs: 12 }} sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+                &lt;Button variant="outlined" onClick={() => navigate("/cursos")}>
+                    Cancelar
+                &lt;/Button>
+                &lt;Button variant="contained" onClick={handleSubmit}>
+                    Guardar Cambios
+                &lt;/Button>
+              &lt;/Grid>
+            &lt;/Grid>
+          &lt;/Paper>
+        &lt;/Grid>
+    &lt;/Grid>
+  );
+}
+
+export default EditarCurso;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AltaCurso">AltaCurso</a></li><li><a href="global.html#AltaPlataforma">AltaPlataforma</a></li><li><a href="global.html#EditarCurso">EditarCurso</a></li><li><a href="global.html#EditarPlataforma">EditarPlataforma</a></li><li><a href="global.html#Footer">Footer</a></li><li><a href="global.html#Inicio">Inicio</a></li><li><a href="global.html#ListadoCardCursos">ListadoCardCursos</a></li><li><a href="global.html#ListadoCardPlataformas">ListadoCardPlataformas</a></li><li><a href="global.html#ListadoCursos">ListadoCursos</a></li><li><a href="global.html#ListadoCursosDataGrid">ListadoCursosDataGrid</a></li><li><a href="global.html#ListadoPlataformas">ListadoPlataformas</a></li><li><a href="global.html#ListadoPlataformasDataGrid">ListadoPlataformasDataGrid</a></li><li><a href="global.html#Navbar">Navbar</a></li><li><a href="global.html#api">api</a></li><li><a href="global.html#clearUser">clearUser</a></li><li><a href="global.html#isAdmin">isAdmin</a></li><li><a href="global.html#isLoggedIn">isLoggedIn</a></li><li><a href="global.html#isUser">isUser</a></li><li><a href="global.html#setUser">setUser</a></li><li><a href="global.html#useUserStore">useUserStore</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Mon Feb 09 2026 17:42:31 GMT+0100 (hora estándar de Europa central)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,103 +1,146 @@
-import React, { useState, useEffect } from 'react';
-import { View, FlatList, StyleSheet, Alert } from 'react-native';
-import { Text, Searchbar, ActivityIndicator } from 'react-native-paper';
-import { useIsFocused } from '@react-navigation/native';
-import api from '../src/service/api';
+import { useFocusEffect } from "expo-router";
+import React, { useCallback, useState } from "react";
+import { Alert, FlatList, Platform, StyleSheet, View } from "react-native";
+import { ActivityIndicator, FAB, Text } from "react-native-paper";
+import api from "../src/service/api";
+import { CursoCard } from "../src/components/CursoCard";
 
-import { CursoCard, Curso } from '../src/components/CursoCard'; 
+export default function Listado() {
+  const [cursos, setCursos] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-export default function ListadoScreen() {
-  const [cursos, setCursos] = useState<Curso[]>([]);
-  const [busqueda, setBusqueda] = useState<string>("");
-  const [loading, setLoading] = useState<boolean>(true);
-  
-  const isFocused = useIsFocused();
+  // 1. Helper para mostrar mensajes (Multiplataforma)
+  const showSimpleAlert = (title: string, message: string) => {
+    if (Platform.OS === "web") {
+      window.alert(`${title}\n${message}`);
+    } else {
+      Alert.alert(title, message);
+    }
+  };
 
-  const cargarCursos = async () => {
+  // 2. Función para obtener cursoes (GET)
+  const fetchCursos = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/cursos');
-      const data: Curso[] = res.data.datos || res.data;
-      setCursos(data);
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "No se pudieron cargar los cursos");
+      const data = await api.get("/cursos");
+      // Recordatorio: nuestro interceptor ya devuelve el .data de axios
+      setCursos(data.datos);
+    } catch (error: any) {
+      showSimpleAlert(
+        "Error",
+        error.mensaje || "No se pudieron cargar los datos",
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    if (isFocused) cargarCursos();
-  }, [isFocused]);
+  // 3. Refrescar datos cuando la pantalla gana el foco
+  //   Con useFocusEffect, la función fetchCursos() se ejecuta
+  //   cada vez que el usuario entra en la pestaña.
+  //   lleva un useCallback dentro para evitar bucles infinitos.
+  //   useCallback memoriza la función
+  useFocusEffect(
+    useCallback(() => {
+      fetchCursos();
+    }, []),
+  );
 
-  const confirmarEliminar = (id: number) => {
-    Alert.alert(
-      "Eliminar Curso",
-      "¿Estás seguro?",
-      [
+  // 4. Lógica de borrado (Multiplataforma)
+  const handleDelete = (id: number) => {
+    const title = "Eliminar";
+    const msg = "¿Estás seguro de que quieres eliminar este curso?";
+
+    if (Platform.OS === "web") {
+      if (window.confirm(`${title}\n\n${msg}`)) {
+        ejecutarBorrado(id);
+      }
+    } else {
+      Alert.alert(title, msg, [
         { text: "Cancelar", style: "cancel" },
-        { text: "Eliminar", onPress: () => eliminarCurso(id), style: "destructive" }
-      ]
-    );
-  };
-
-  const eliminarCurso = async (id: number) => {
-    try {
-      await api.delete(`/cursos/${id}`);
-      setCursos(prevCursos => prevCursos.filter(c => c.id_curso !== id));
-      Alert.alert("Borrado", "Curso eliminado");
-    } catch (error) {
-      Alert.alert("Error", "No se pudo eliminar");
+        {
+          text: "Eliminar",
+          onPress: () => ejecutarBorrado(id),
+          style: "destructive",
+        },
+      ]);
     }
   };
 
-  const verDetalle = (item: Curso) => {
-      Alert.alert("Detalles", `Estás viendo el curso: ${item.titulo}`);
+  const ejecutarBorrado = async (id: number) => {
+    try {
+      await api.delete(`/cursos/${id}`);
+      showSimpleAlert("Éxito", "Curso eliminado");
+      fetchCursos(); // Recargar la lista tras borrar
+    } catch (error: any) {
+      showSimpleAlert("Error", "No se pudo eliminar el registro");
+    }
   };
 
-  const cursosFiltrados = cursos.filter(c => 
-    c.titulo.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  // 5. Renderizado
+  if (loading && cursos.length === 0) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator animating={true} color="#6200ee" size="large" />
+        <Text style={{ marginTop: 10 }}>Cargando cursoes...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      
-      <View style={styles.headerContainer}>
-        <Text variant="headlineSmall" style={styles.title}>Catálogo EduDAM</Text>
-        <Searchbar
-          placeholder="Buscar curso..."
-          onChangeText={setBusqueda}
-          value={busqueda}
-          style={styles.searchbar}
-          inputStyle={{ minHeight: 0 }}
-        />
-      </View>
+<FlatList
+  data={cursos}
+  keyExtractor={(item) => item.id_curso.toString()}
+  contentContainerStyle={styles.listContent}
+  renderItem={({ item }) => (
+    <CursoCard
+      item={item}  
+      onDelete={handleDelete}  
+      onVerDetalle={(curso) => {
+        // Implementa la navegación o modal aquí
+        console.log('Ver detalle:', curso);
+      }}
+    />
+  )}
+  ListEmptyComponent={
+    <View style={styles.center}>
+      <Text variant="bodyLarge">No hay cursos disponibles</Text>
+    </View>
+  }
+/>
 
-      {loading ? (
-        <ActivityIndicator animating={true} color="#2563eb" size="large" style={{ marginTop: 50 }} />
-      ) : (
-        <FlatList
-          data={cursosFiltrados}
-          keyExtractor={(item) => item.id_curso.toString()}
-          contentContainerStyle={styles.listContent}
-          renderItem={({ item }) => (
-            <CursoCard 
-                item={item} 
-                onDelete={confirmarEliminar}
-                onVerDetalle={verDetalle}
-            />
-          )}
-        />
-      )}
+      {/* Botón flotante para refrescar manualmente */}
+      <FAB
+        icon="refresh"
+        style={styles.fab}
+        onPress={fetchCursos}
+        color="white"
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f8fafc' },
-  headerContainer: { padding: 20, backgroundColor: '#fff', borderBottomWidth: 1, borderBottomColor: '#e5e7eb' },
-  title: { fontWeight: 'bold', color: '#1f2937', marginBottom: 15 },
-  searchbar: { backgroundColor: '#f1f5f9', borderRadius: 8, elevation: 0, borderWidth: 1, borderColor: '#e2e8f0' },
-  listContent: { padding: 15 },
+  container: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+  },
+  center: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  listContent: {
+    padding: 16,
+    paddingBottom: 100, // Espacio para que el FAB no tape la última card
+  },
+  fab: {
+    position: "absolute",
+    margin: 16,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "#6200ee",
+  },
 });

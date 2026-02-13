@@ -40,9 +40,9 @@ app.get("/", (req, res) => {
 // ============================================
 // Solo arrancamos si este archivo se ejecuta directamente (no en tests)
 if (process.env.NODE_ENV !== "test") {
-    app.listen(port, () => {
-        // Usamos console.log por si logger falla al inicio
-        console.log(`🚀 Servidor Docker escuchando en el puerto ${port}`);
+    app.listen(port, '0.0.0.0', () => { // ✅ Agregar '0.0.0.0'
+        console.log(`🚀 Servidor escuchando en el puerto ${port}`);
+        console.log(`📱 Accesible desde: http://192.168.1.173:${port}`);
         if (logMensaje) logMensaje(`Servidor iniciado en puerto ${port}`);
     });
 }

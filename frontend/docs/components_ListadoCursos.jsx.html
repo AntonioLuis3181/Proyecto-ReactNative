@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/ListadoCursos.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/ListadoCursos.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { useState, useEffect, useRef } from "react";
+import { 
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, 
+  Typography, Container, TextField, Button, Box, Stack 
+} from "@mui/material";
+import PrintIcon from '@mui/icons-material/Print';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import DescriptionIcon from '@mui/icons-material/Description';
+
+
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import ListadoCursosPDF from "./ListadoCursosPDF"; // Importamos el diseño que acabamos de crear
+
+const API_URL = "http://localhost:3000/api/cursos"; // Ajusta tu puerto si es necesario
+
+/**
+ * Componente principal de listado.
+ * @component
+ */
+
+function ListadoCursos() {
+  const [cursos, setCursos] = useState([]);
+  const [busqueda, setBusqueda] = useState("");
+  const tableRef = useRef(null); // Referencia para la foto (html2canvas)
+
+
+useEffect(() => {
+        const cargarCursos = async () => {
+      try {
+        const response = await fetch("http://localhost:3000/api/cursos");
+        const data = await response.json();
+        
+        setCursos(data.datos || data); 
+      } catch (error) {
+        console.error("Error cargando cursos:", error);
+      }
+    };
+
+    cargarCursos();
+
+  }, []);
+
+  // --- TÉCNICA 1: WINDOW.PRINT (Navegador) ---
+  const handleImprimirNavegador = () => {
+    window.print();
+  };
+
+  // --- TÉCNICA 2: JSPDF + HTML2CANVAS (Foto a PDF) ---
+  const handleImprimirImagenPDF = async () => {
+    const input = tableRef.current; // Capturamos la tabla
+    if (!input) return;
+
+    const canvas = await html2canvas(input);
+    const imgData = canvas.toDataURL('image/png');
+    
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+    
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.save("listado_cursos_imagen.pdf");
+  };
+
+  // Filtrado simple en cliente (para que la tabla funcione al buscar)
+  const cursosFiltrados = cursos.filter(c => 
+    c.titulo.toLowerCase().includes(busqueda.toLowerCase())
+  );
+
+  return (
+    &lt;Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      &lt;Typography variant="h4" gutterBottom color="primary" fontWeight="bold">
+        Listado de Cursos
+      &lt;/Typography>
+
+      {/* BARRA DE ACCIONES */}
+      &lt;Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 3, justifyContent: 'space-between' }}>
+        &lt;TextField
+          label="Buscar curso..."
+          variant="outlined"
+          size="small"
+          value={busqueda}
+          onChange={(e) => setBusqueda(e.target.value)}
+          sx={{ width: { xs: '100%', sm: '300px' } }}
+        />
+
+        {/* --- LOS 3 BOTONES DE IMPRESIÓN --- */}
+        {/* Usamos una clase 'no-print' para ocultarlos al imprimir por navegador */}
+        &lt;Stack direction="row" spacing={1} className="no-print">
+          
+          {/* A. NAVEGADOR */}
+          &lt;Button variant="outlined" startIcon={&lt;PrintIcon />} onClick={handleImprimirNavegador}>
+            Imprimir
+          &lt;/Button>
+
+          {/* B. IMAGEN A PDF */}
+          &lt;Button variant="outlined" color="secondary" startIcon={&lt;PictureAsPdfIcon />} onClick={handleImprimirImagenPDF}>
+            PDF (Img)
+          &lt;/Button>
+
+          {/* C. REACT-PDF (Nativo) */}
+          &lt;PDFDownloadLink
+            document={&lt;ListadoCursosPDF datos={cursosFiltrados} />}
+            fileName="informe_cursos.pdf"
+            style={{ textDecoration: 'none' }}
+          >
+            {({ loading }) => (
+              &lt;Button variant="contained" color="primary" startIcon={&lt;DescriptionIcon />}>
+                {loading ? 'Generando...' : 'Informe PDF'}
+              &lt;/Button>
+            )}
+          &lt;/PDFDownloadLink>
+
+        &lt;/Stack>
+      &lt;/Stack>
+
+      {/* TABLA DE DATOS (Con ref para capturarla) */}
+      &lt;TableContainer component={Paper} ref={tableRef} elevation={3}>
+        &lt;Table>
+          &lt;TableHead sx={{ bgcolor: '#eeeeee' }}>
+            &lt;TableRow>
+              &lt;TableCell>ID&lt;/TableCell>
+              &lt;TableCell>Título&lt;/TableCell>
+              &lt;TableCell>Precio&lt;/TableCell>
+              &lt;TableCell>Horas&lt;/TableCell>
+              {/* Ocultamos acciones al imprimir */}
+              &lt;TableCell className="no-print">Acciones&lt;/TableCell> 
+            &lt;/TableRow>
+          &lt;/TableHead>
+          &lt;TableBody>
+            {cursosFiltrados.map((curso) => (
+              &lt;TableRow key={curso.id_curso}>
+                &lt;TableCell>{curso.id_curso}&lt;/TableCell>
+                &lt;TableCell>{curso.titulo}&lt;/TableCell>
+                &lt;TableCell>{curso.precio} €&lt;/TableCell>
+                &lt;TableCell>{curso.horas} h&lt;/TableCell>
+                &lt;TableCell className="no-print">
+                  &lt;Button size="small" variant="contained" color="info">Ver&lt;/Button>
+                &lt;/TableCell>
+              &lt;/TableRow>
+            ))}
+          &lt;/TableBody>
+        &lt;/Table>
+      &lt;/TableContainer>
+    &lt;/Container>
+  );
+}
+
+export default ListadoCursos;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AltaCurso">AltaCurso</a></li><li><a href="global.html#AltaPlataforma">AltaPlataforma</a></li><li><a href="global.html#EditarCurso">EditarCurso</a></li><li><a href="global.html#EditarPlataforma">EditarPlataforma</a></li><li><a href="global.html#Footer">Footer</a></li><li><a href="global.html#Inicio">Inicio</a></li><li><a href="global.html#ListadoCardCursos">ListadoCardCursos</a></li><li><a href="global.html#ListadoCardPlataformas">ListadoCardPlataformas</a></li><li><a href="global.html#ListadoCursos">ListadoCursos</a></li><li><a href="global.html#ListadoCursosDataGrid">ListadoCursosDataGrid</a></li><li><a href="global.html#ListadoPlataformas">ListadoPlataformas</a></li><li><a href="global.html#ListadoPlataformasDataGrid">ListadoPlataformasDataGrid</a></li><li><a href="global.html#Navbar">Navbar</a></li><li><a href="global.html#api">api</a></li><li><a href="global.html#clearUser">clearUser</a></li><li><a href="global.html#isAdmin">isAdmin</a></li><li><a href="global.html#isLoggedIn">isLoggedIn</a></li><li><a href="global.html#isUser">isUser</a></li><li><a href="global.html#setUser">setUser</a></li><li><a href="global.html#useUserStore">useUserStore</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Mon Feb 09 2026 17:42:31 GMT+0100 (hora estándar de Europa central)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

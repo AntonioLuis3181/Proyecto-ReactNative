@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/ListadoCardsCursos.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/ListadoCardsCursos.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
+import api from "../api"; 
+
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import CardActions from "@mui/material/CardActions";
+import CardContent from "@mui/material/CardContent";
+import CardMedia from "@mui/material/CardMedia"; 
+import Grid from "@mui/material/Grid";
+import Typography from "@mui/material/Typography";
+import Pagination from '@mui/material/Pagination';
+import Stack from '@mui/material/Stack';
+import Chip from '@mui/material/Chip'; 
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import EuroIcon from '@mui/icons-material/Euro';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import SchoolIcon from '@mui/icons-material/School';
+/**
+ * Componente principal de listado.
+ * @component
+ */
+function ListadoCardCursos() {
+  const [datos, setDatos] = useState([]);
+  const [error, setError] = useState(null);
+  
+  const [pagina, setPagina] = useState(1);
+  const [totalPaginas, setTotalPaginas] = useState(1);
+  const filasPorPagina = 4;
+
+  useEffect(() => {
+    async function fetchCursos() {
+      try {
+        const respuesta = await api.get(`/cursos?page=${pagina}&amp;limit=${filasPorPagina}`);
+        
+        setDatos(respuesta.datos || []);
+        setTotalPaginas(respuesta.totalPaginas || 1);
+        setError(null);
+      } catch (error) {
+        setError(error.mensaje || "Error al cargar cursos");
+        setDatos([]);
+      }
+    }
+
+    fetchCursos();
+  }, [pagina]); 
+
+  async function handleDelete(id_curso) {
+    if (window.confirm("¿Seguro que quieres borrar este curso?")) {
+        try {
+            await api.delete("/cursos/" + id_curso);
+            const datos_nuevos = datos.filter((c) => c.id_curso !== id_curso);
+            setDatos(datos_nuevos);
+        } catch (error) {
+            setError(error.mensaje || "Error al borrar");
+        }
+    }
+  }
+
+  if (error) return &lt;Typography color="error" align="center">{error}&lt;/Typography>;
+
+  return (
+    &lt;>
+      &lt;Typography variant="h4" align="center" sx={{ my: 3 }}>
+        Catálogo de Cursos
+      &lt;/Typography>
+      
+      &lt;Grid container spacing={3} sx={{ px: 4 }}>
+        {datos.map((row) => (
+          &lt;Grid item xs={12} sm={6} md={3} key={row.id_curso}>
+            &lt;Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', boxShadow: 3 }}>
+              
+              &lt;CardMedia
+                component="img"
+                height="140"
+                image={row.imagen_url || "https://via.placeholder.com/300x140?text=Sin+Imagen"}
+                alt={row.titulo}
+              />
+
+              &lt;CardContent sx={{ flexGrow: 1 }}>
+                &lt;Typography gutterBottom variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
+                  {row.titulo}
+                &lt;/Typography>
+
+                &lt;Typography variant="body2" color="text.secondary" sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    &lt;SchoolIcon fontSize="small" sx={{ mr: 1 }}/>
+                    {row.plataforma ? row.plataforma.nombre : "Sin plataforma"}
+                &lt;/Typography>
+
+                &lt;Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+                    &lt;Chip 
+                        icon={&lt;EuroIcon />} 
+                        label={`${row.precio} €`} 
+                        color="primary" 
+                        variant="outlined" 
+                        size="small"
+                    />
+                    &lt;Chip 
+                        icon={&lt;AccessTimeIcon />} 
+                        label={`${row.horas} h`} 
+                        size="small"
+                    />
+                &lt;/Stack>
+              &lt;/CardContent>
+
+              {/* BOTONES */}
+              &lt;CardActions sx={{ justifyContent: "space-between", px: 2, pb: 2 }}>
+                &lt;Button 
+                    size="small" 
+                    component={Link} 
+                    to={`/cursos/edit/${row.id_curso}`} 
+                    startIcon={&lt;EditIcon />}
+                >
+                    Editar
+                &lt;/Button>
+                &lt;Button 
+                    size="small" 
+                    color="error" 
+                    onClick={() => handleDelete(row.id_curso)}
+                    startIcon={&lt;DeleteIcon />}
+                >
+                    Borrar
+                &lt;/Button>
+              &lt;/CardActions>
+            &lt;/Card>
+          &lt;/Grid>
+        ))}
+      &lt;/Grid>
+
+      &lt;Stack spacing={2} sx={{ mt: 4, mb: 4, alignItems: 'center' }}>
+        &lt;Pagination 
+            count={totalPaginas} 
+            page={pagina} 
+            onChange={(e, value) => setPagina(value)} 
+            color="primary" 
+            size="large"
+        />
+      &lt;/Stack>
+    &lt;/>
+  );
+}
+
+export default ListadoCardCursos;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AltaCurso">AltaCurso</a></li><li><a href="global.html#AltaPlataforma">AltaPlataforma</a></li><li><a href="global.html#EditarCurso">EditarCurso</a></li><li><a href="global.html#EditarPlataforma">EditarPlataforma</a></li><li><a href="global.html#Footer">Footer</a></li><li><a href="global.html#Inicio">Inicio</a></li><li><a href="global.html#ListadoCardCursos">ListadoCardCursos</a></li><li><a href="global.html#ListadoCardPlataformas">ListadoCardPlataformas</a></li><li><a href="global.html#ListadoCursos">ListadoCursos</a></li><li><a href="global.html#ListadoCursosDataGrid">ListadoCursosDataGrid</a></li><li><a href="global.html#ListadoPlataformas">ListadoPlataformas</a></li><li><a href="global.html#ListadoPlataformasDataGrid">ListadoPlataformasDataGrid</a></li><li><a href="global.html#Navbar">Navbar</a></li><li><a href="global.html#api">api</a></li><li><a href="global.html#clearUser">clearUser</a></li><li><a href="global.html#isAdmin">isAdmin</a></li><li><a href="global.html#isLoggedIn">isLoggedIn</a></li><li><a href="global.html#isUser">isUser</a></li><li><a href="global.html#setUser">setUser</a></li><li><a href="global.html#useUserStore">useUserStore</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Mon Feb 09 2026 17:42:31 GMT+0100 (hora estándar de Europa central)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/Navbar.jsx</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/Navbar.jsx</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import * as React from "react";
+import { AppBar, Box, Toolbar, IconButton, Typography, Menu, Container, Button, MenuItem, Divider, ListSubheader } from "@mui/material";
+import MenuIcon from "@mui/icons-material/Menu";
+import { Link } from "react-router";
+import Brightness4Icon from '@mui/icons-material/Brightness4'; // Luna
+import Brightness7Icon from '@mui/icons-material/Brightness7';
+/**
+ * Componente principal de listado.
+ * @component
+ */
+
+function Navbar({ toggleColorMode, mode }) {
+  const [anclaMenuPlataformas, setAnclaMenuPlataformas] = React.useState(null);
+  const [anclaMenuCursos, setAnclaMenuCursos] = React.useState(null);
+  const [anclaMenuXS, setAnclaMenuXS] = React.useState(null);
+
+  const handleClickMenuPlataformas = (event) => setAnclaMenuPlataformas(event.currentTarget);
+  const handleClickMenuCursos = (event) => setAnclaMenuCursos(event.currentTarget);
+  const handleClickMenuXS = (event) => setAnclaMenuXS(event.currentTarget);
+
+  const handleCloseNavMenu = () => {
+    setAnclaMenuPlataformas(null);
+    setAnclaMenuCursos(null);
+    setAnclaMenuXS(null);
+  };
+
+  const linkStyle = { color: "#1f2937", textDecoration: "none", width: '100%' };
+
+  return (
+    &lt;AppBar position="sticky" sx={{ backgroundColor: "white", color: "#1f2937", boxShadow: "0 2px 4px rgba(0,0,0,0.05)" }}>
+      &lt;Container maxWidth="xl">
+        &lt;Toolbar disableGutters>
+
+          
+          {/* 1. BOTÓN HAMBURGUESA */}
+          &lt;Box sx={{ display: { xs: "flex", md: "none" }, mr: 1 }}>
+            &lt;IconButton size="large" onClick={handleClickMenuXS} color="inherit">
+              &lt;MenuIcon />
+            &lt;/IconButton>
+            &lt;Menu
+              anchorEl={anclaMenuXS}
+              open={Boolean(anclaMenuXS)}
+              onClose={handleCloseNavMenu}
+              sx={{ display: { xs: "block", md: "none" } }}
+            >
+              {/* Sección Plataformas en Móvil */}
+              &lt;ListSubheader sx={{ fontWeight: 'bold', color: '#2563eb' }}>PLATAFORMAS&lt;/ListSubheader>
+              &lt;MenuItem onClick={handleCloseNavMenu}>
+                &lt;Link to="/plataformas/new" style={linkStyle}>Alta de plataformas&lt;/Link>
+              &lt;/MenuItem>
+              &lt;MenuItem onClick={handleCloseNavMenu}>
+                &lt;Link to="/plataformas" style={linkStyle}>Listado de plataformas&lt;/Link>
+              &lt;/MenuItem>
+              &lt;MenuItem onClick={handleCloseNavMenu}>
+                &lt;Link to="/plataformas/datagrid" style={linkStyle}>Listado de plataformas con DataGrid&lt;/Link>
+              &lt;/MenuItem>
+              &lt;MenuItem onClick={handleCloseNavMenu}>
+                &lt;Link to="/plataformas/cards" style={linkStyle}>Listado de plataformas con Cards&lt;/Link>
+              &lt;/MenuItem>
+              
+              &lt;Divider sx={{ my: 1 }} />
+              
+              {/* Sección Cursos en Móvil */}
+              &lt;ListSubheader sx={{ fontWeight: 'bold', color: '#2563eb' }}>CURSOS&lt;/ListSubheader>
+              &lt;MenuItem onClick={handleCloseNavMenu}>
+                &lt;Link to="/cursos/new" style={linkStyle}>Alta de cursos&lt;/Link>
+              &lt;/MenuItem>
+              &lt;MenuItem onClick={handleCloseNavMenu}>
+                &lt;Link to="/cursos" style={linkStyle}>Listado de cursos&lt;/Link>
+              &lt;/MenuItem>
+              &lt;MenuItem onClick={handleCloseNavMenu}>
+                &lt;Link to="/cursos/datagrid" style={linkStyle}>Listado de cursos con DataGrid&lt;/Link>
+              &lt;/MenuItem>
+              &lt;MenuItem onClick={handleCloseNavMenu}>
+                &lt;Link to="/cursos/cards" style={linkStyle}>Listado de cursos con Cards&lt;/Link>
+              &lt;/MenuItem>
+            &lt;/Menu>
+          &lt;/Box>
+
+          {/* 2. NOMBRE DE LA PÁGINA*/}
+          &lt;Typography
+            variant="h6"
+            noWrap
+            component={Link}
+            to="/"
+            sx={{
+              flexGrow: { xs: 1, md: 0 },
+              display: "flex",           
+              fontWeight: 800,
+              color: "#2563eb",
+              textDecoration: "none",
+              mr: 4
+            }}
+          >
+            WEB&lt;Box component="span" sx={{ color: "#1f2937" }}>E-LEARNING&lt;/Box>
+          &lt;/Typography>
+
+          {/* 3. MENÚ ESCRITORIO */}
+          &lt;Box sx={{ flexGrow: 1, display: { xs: "none", md: "flex" }, gap: 1 }}>
+            &lt;Button onClick={handleClickMenuPlataformas} sx={{ color: "#4b5563", textTransform: "none", fontWeight: 600 }}>
+              Plataformas
+            &lt;/Button>
+            &lt;Button onClick={handleClickMenuCursos} sx={{ color: "#4b5563", textTransform: "none", fontWeight: 600 }}>
+              Cursos
+            &lt;/Button>
+            &lt;Button color="inherit" component={Link} to="/informes">
+            Informes
+            &lt;/Button>
+          &lt;/Box>
+          &lt;IconButton sx={{ ml: 1 }} onClick={toggleColorMode} color="inherit">
+              {mode === 'dark' ? &lt;Brightness7Icon /> : &lt;Brightness4Icon />}
+          &lt;/IconButton>
+          &lt;Menu
+            anchorEl={anclaMenuPlataformas}
+            open={Boolean(anclaMenuPlataformas)}
+            onClose={handleCloseNavMenu}
+            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+          >
+            &lt;MenuItem onClick={handleCloseNavMenu}>&lt;Link to="/plataformas/new" style={linkStyle}>Alta de plataformas&lt;/Link>&lt;/MenuItem>
+            &lt;MenuItem onClick={handleCloseNavMenu}>&lt;Link to="/plataformas" style={linkStyle}>Listado de plataformas&lt;/Link>&lt;/MenuItem>
+            &lt;MenuItem onClick={handleCloseNavMenu}>&lt;Link to="/plataformas/datagrid" style={linkStyle}>Listado de plataformas con DataGrid&lt;/Link>&lt;/MenuItem>
+            &lt;MenuItem onClick={handleCloseNavMenu}>&lt;Link to="/plataformas/cards" style={linkStyle}>Listado de plataformas con Cards&lt;/Link>&lt;/MenuItem>
+          &lt;/Menu>
+
+          &lt;Menu
+            anchorEl={anclaMenuCursos}
+            open={Boolean(anclaMenuCursos)}
+            onClose={handleCloseNavMenu}
+            anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+          >
+            &lt;MenuItem onClick={handleCloseNavMenu}>&lt;Link to="/cursos/new" style={linkStyle}>Alta de cursos&lt;/Link>&lt;/MenuItem>
+            &lt;MenuItem onClick={handleCloseNavMenu}>&lt;Link to="/cursos" style={linkStyle}>Listado de cursos&lt;/Link>&lt;/MenuItem>
+            &lt;MenuItem onClick={handleCloseNavMenu}>&lt;Link to="/cursos/datagrid" style={linkStyle}>Listado de cursos con DataGrid&lt;/Link>&lt;/MenuItem>
+            &lt;MenuItem onClick={handleCloseNavMenu}>&lt;Link to="/cursos/cards" style={linkStyle}>Listado de cursos con Cards&lt;/Link>&lt;/MenuItem>         
+          &lt;/Menu>
+
+        &lt;/Toolbar>
+      &lt;/Container>
+    &lt;/AppBar>
+  );
+}
+
+export default Navbar;</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AltaCurso">AltaCurso</a></li><li><a href="global.html#AltaPlataforma">AltaPlataforma</a></li><li><a href="global.html#EditarCurso">EditarCurso</a></li><li><a href="global.html#EditarPlataforma">EditarPlataforma</a></li><li><a href="global.html#Footer">Footer</a></li><li><a href="global.html#Inicio">Inicio</a></li><li><a href="global.html#ListadoCardCursos">ListadoCardCursos</a></li><li><a href="global.html#ListadoCardPlataformas">ListadoCardPlataformas</a></li><li><a href="global.html#ListadoCursos">ListadoCursos</a></li><li><a href="global.html#ListadoCursosDataGrid">ListadoCursosDataGrid</a></li><li><a href="global.html#ListadoPlataformas">ListadoPlataformas</a></li><li><a href="global.html#ListadoPlataformasDataGrid">ListadoPlataformasDataGrid</a></li><li><a href="global.html#Navbar">Navbar</a></li><li><a href="global.html#api">api</a></li><li><a href="global.html#clearUser">clearUser</a></li><li><a href="global.html#isAdmin">isAdmin</a></li><li><a href="global.html#isLoggedIn">isLoggedIn</a></li><li><a href="global.html#isUser">isUser</a></li><li><a href="global.html#setUser">setUser</a></li><li><a href="global.html#useUserStore">useUserStore</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.5</a> on Mon Feb 09 2026 17:42:31 GMT+0100 (hora estándar de Europa central)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
