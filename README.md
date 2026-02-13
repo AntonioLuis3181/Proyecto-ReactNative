@@ -5,7 +5,7 @@ Aplicación móvil desarrollada en React Native (Expo) para la gestión de curso
 ## a. Enlace al Repositorio
 
 Puedes encontrar el código fuente completo en el siguiente enlace:
-👉 **https://github.com/TU_USUARIO/NOMBRE_DEL_REPO**
+👉 **https://github.com/AntonioLuis3181/Proyecto-ReactNative.git**
 
 ---
 
@@ -15,12 +15,12 @@ Para el correcto funcionamiento de la API, se requiere una base de datos MySQL c
 
 | Parámetro | Valor |
 | :--- | :--- |
-| **Base de Datos** | `edudam_db` (o el nombre que uses) |
+| **Base de Datos** | `elearning_db`  |
 | **Usuario** | `root` |
-| **Contraseña** | *(vacío)* o `1234` (según configuración local) |
+| **Contraseña** | `test` |
 | **Puerto DB** | `3306` |
 
-> **Nota:** Se incluye el archivo `script.sql` en la carpeta `/backend` (o `/database`) para generar las tablas y datos de prueba necesarios.
+> **Nota:** Se incluye el archivo `elearning_db.sql` en la carpeta `/backend/sql` para generar las tablas y datos de prueba necesarios.
 
 ---
 
